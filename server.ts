@@ -327,7 +327,7 @@ ${userPromptContext}
 모든 문장은 전문적이고 정제된 컨설팅 보고서 톤(한국어)으로 1~3문장 이내로 작성하세요.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }]
