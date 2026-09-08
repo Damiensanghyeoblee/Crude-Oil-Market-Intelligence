@@ -327,7 +327,7 @@ ${userPromptContext}
 모든 문장은 전문적이고 정제된 컨설팅 보고서 톤(한국어)으로 1~3문장 이내로 작성하세요.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }]
@@ -361,12 +361,18 @@ ${userPromptContext}
 
   } catch (error: any) {
     console.error("Error generating market summary:", error);
+    const isQuotaError = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('quota');
+    const summaryMsg = isQuotaError
+      ? "현재 API 사용량 한도(Quota 429)를 초과하여, 검증된 컨설팅 데이터베이스 기반의 표준 시황 요약본을 제공합니다. 잠시 후 다시 시도해 주세요."
+      : "현재 실시간 AI 연동 중 일시적인 응답 지연이 발생하여 기본 시황 데이터셋을 제공합니다.";
+
     res.json({
       date: new Date().toISOString().split('T')[0],
       executiveSummary: [
-        "현재 실시간 AI 연동 중 일시적인 응답 지연이 발생하여 기본 시황 데이터셋을 제공합니다."
+        summaryMsg,
+        "유가, 가솔린 및 주요 납사 등 석유화학 제품군의 가격 흐름과 상·하방 요인은 아래 카드 및 상세 분석에서 확인하실 수 있습니다."
       ],
-      executiveSources: [{ id: "err-1", title: "기본 시스템 데이터", publisher: "Consulting DB", type: "official_stats", date: "2026-09-07" }],
+      executiveSources: [{ id: "err-1", title: isQuotaError ? "API Quota Exceeded - Fallback Dataset" : "기본 시스템 데이터", publisher: "Consulting DB", type: "official_stats", date: "2026-09-07" }],
       products: defaultProducts,
       uploadedReportsCount: 0
     });
